@@ -1,0 +1,9 @@
+Terrain Airsoft 3D 1.9
+© 2026 beerkano. Tous droits réservés sur les éléments originaux du projet. Les composants Microsoft conservent leurs conditions respectives.
+
+Compilation Windows x64 depuis le dossier extrait avec Python 3 et le compilateur .NET Framework 4.x :
+python work/assemble_desktop.py
+.\work\airsoft-host\build.ps1 -SdkDirectory "DOSSIER_WEBVIEW2"
+Ce dossier doit contenir Microsoft.Web.WebView2.Core.dll, Microsoft.Web.WebView2.WinForms.dll et WebView2Loader.dll x64.
+Test fonctionnel : lancer le programme avec --self-test et vérifier le code de sortie 0.
+SHA-256 du binaire distribué : 53175304582962a88c7cc23f831a3c0b87da02da6902d2e318674fac23e5f999

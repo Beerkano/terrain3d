@@ -1,0 +1,103 @@
+<div id="airsoft-terrain-editor">
+  <div class="ate-heading">
+    <h2>Ton terrain d’airsoft</h2>
+    <span class="text-small text-muted">100 × 160 m · 1,3 ha de jeu · 0,3 ha de zone safe et de parking</span>
+  </div>
+  <div class="viz-controls ate-toolbar">
+    <button type="button" class="btn" id="ate-3d" aria-pressed="true">Vue 3D</button>
+    <button type="button" class="btn" id="ate-top" aria-pressed="false">Vue du dessus</button>
+    <button type="button" class="btn btn-ghost" id="ate-undo" disabled aria-label="Annuler la dernière modification">Annuler</button>
+    <button type="button" class="btn btn-ghost" id="ate-redo" disabled aria-label="Rétablir la dernière modification">Rétablir</button>
+  </div>
+  <div class="viz-row ate-locations" role="group" aria-label="Cadrer la maquette">
+    <button class="btn btn-ghost" type="button" id="ate-overview">Terrain entier</button>
+    <button class="btn btn-ghost" type="button" id="ate-focus-cour">Cour centrale</button>
+    <button class="btn btn-ghost" type="button" id="ate-focus-atelier">Atelier ouest</button>
+    <button class="btn btn-ghost" type="button" id="ate-focus-marche">Marché est</button>
+  </div>
+  <canvas id="ate-canvas" role="img" aria-label="Maquette 3D. Faire glisser un bâtiment pour le déplacer. Faire glisser sa poignée ronde pour le tourner. La liste Élément et les champs de position et de rotation permettent aussi de modifier le plan au clavier.">Maquette 3D interactive du terrain d’airsoft.</canvas>
+  <div class="ate-bottom">
+    <span class="text-small" id="ate-hint">Clique sur un bâtiment pour le déplacer ou le tourner.</span>
+    <div class="viz-row" id="ate-turn-tools" hidden>
+      <span id="ate-turn-name"></span>
+      <button type="button" class="btn" id="ate-minus" aria-label="Tourner de moins quinze degrés">−15°</button>
+      <label class="form-label">Rotation (°)<input class="form-control tabular-nums" type="number" id="ate-r" min="0" max="359" step="1"></label>
+      <button type="button" class="btn" id="ate-plus" aria-label="Tourner de plus quinze degrés">+15°</button>
+    </div>
+    <div class="viz-controls">
+      <label class="form-label">Ajouter
+        <select class="form-select" id="ate-add-type">
+          <option value="container">Conteneur</option>
+          <option value="building">Bâtiment sans toit</option>
+          <option value="pallet">Obstacle en palettes</option>
+          <option value="tarp">Abri en bâche</option>
+          <option value="tree">Arbre</option>
+          <option value="table">Table</option>
+          <option value="gate">Portail</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn-primary" id="ate-add">Ajouter</button>
+      <button type="button" class="btn btn-ghost" id="ate-save" aria-expanded="false" aria-controls="ate-plan-panel">Sauvegarder / charger</button>
+    </div>
+    <div class="viz-controls">
+      <label class="form-label">Élément
+        <select class="form-select" id="ate-object" aria-label="Sélectionner un élément du terrain"></select>
+      </label>
+      <span class="text-small" id="ate-selection-status" aria-live="polite"></span>
+    </div>
+    <fieldset id="ate-fields" class="ate-fields">
+      <legend class="sr-only">Modifier l’élément sélectionné</legend>
+      <div class="ate-properties">
+        <label class="form-label">Nom<input class="form-control" id="ate-name" maxlength="45"></label>
+        <label class="form-label">Structure<select class="form-select" id="ate-type"><option value="container">Conteneur</option><option value="building">Bâtiment sans toit</option><option value="pallet">Obstacle en palettes</option><option value="tarp">Abri en bâche</option><option value="tree">Arbre</option><option value="table">Table</option><option value="gate">Portail</option></select></label>
+        <label class="form-label">Position X (m)<input class="form-control tabular-nums" type="number" id="ate-x" min="0" max="100" step="0.5"></label>
+        <label class="form-label">Position Z (m)<input class="form-control tabular-nums" type="number" id="ate-z" min="0" max="160" step="0.5"></label>
+        <label class="form-label">Largeur (m)<input class="form-control tabular-nums" type="number" id="ate-w" min="0.3" max="30" step="0.1"></label>
+        <label class="form-label">Profondeur (m)<input class="form-control tabular-nums" type="number" id="ate-d" min="0.3" max="30" step="0.1"></label>
+        <label class="form-label">Hauteur (m)<input class="form-control tabular-nums" type="number" id="ate-h" min="0.3" max="15" step="0.1"></label>
+        <label class="form-label" id="ate-shape-wrap">Plan des pièces<select class="form-select" id="ate-shape"><option value="studio">Pièce unique</option><option value="annexe">En L avec annexe</option><option value="longere">Longère divisée</option><option value="atelier">Atelier en T</option><option value="patio">En U avec patio</option><option value="halles">Halle et réserve</option></select></label>
+      </div>
+      <div class="viz-row ate-actions">
+        <button type="button" class="btn" id="ate-rotate">Tourner de 90°</button>
+        <button type="button" class="btn" id="ate-duplicate">Dupliquer</button>
+        <button type="button" class="btn btn-ghost" id="ate-delete">Supprimer</button>
+      </div>
+    </fieldset>
+    <div id="ate-plan-panel" hidden>
+      <label class="form-label" for="ate-plan-text">Plan à copier ou à coller (JSON)</label>
+      <textarea class="form-control" id="ate-plan-text" rows="5" spellcheck="false" aria-label="Texte du plan à conserver ou remplacer pour charger un autre plan"></textarea>
+      <div class="viz-row ate-actions"><button type="button" class="btn" id="ate-refresh-plan">Actualiser le texte</button><button type="button" class="btn btn-primary" id="ate-load-plan">Charger ce plan</button></div>
+      <span class="text-small" id="ate-load-status" role="status"></span>
+    </div>
+    <span id="ate-error" role="alert" class="text-small text-destructive"></span>
+  </div>
+</div>
+<style>
+#airsoft-terrain-editor { --ate-gap: calc(var(--font-size-base) * .75); color:var(--foreground); }
+#airsoft-terrain-editor .ate-heading { display:flex; flex-direction:column; gap:calc(var(--font-size-base) * .25); padding-right:90px; }
+#airsoft-terrain-editor .ate-toolbar { margin-top:var(--ate-gap); }
+#airsoft-terrain-editor .ate-locations { margin-top:var(--ate-gap); }
+#airsoft-terrain-editor #ate-r { width:6em; }
+#airsoft-terrain-editor #ate-canvas { width:100%; height:570px; display:block; touch-action:none; }
+#airsoft-terrain-editor .ate-bottom { display:flex; flex-direction:column; gap:var(--ate-gap); }
+#airsoft-terrain-editor .ate-fields { border:0; padding:0; margin:0; min-width:0; }
+#airsoft-terrain-editor .ate-properties { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--ate-gap); }
+#airsoft-terrain-editor .ate-properties .form-label { display:flex; flex-direction:column; gap:calc(var(--font-size-base) * .25); min-width:0; }
+#airsoft-terrain-editor .ate-actions { margin-top:var(--ate-gap); }
+#airsoft-terrain-editor #ate-plan-text { margin-top:calc(var(--font-size-base) * .25); }
+#airsoft-terrain-editor [hidden] { display:none!important; }
+@media(max-width:600px) {
+ #airsoft-terrain-editor .ate-properties { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ #airsoft-terrain-editor #ate-canvas { height:460px; }
+}
+@media(max-width:380px) { #airsoft-terrain-editor #ate-canvas { height:380px; } }
+</style>
+<script>
+/* AIRSOFT_RENDERER */
+</script>
+<script>
+/* AIRSOFT_LAYOUT */
+</script>
+<script>
+/* AIRSOFT_UI */
+</script>

@@ -1,0 +1,36 @@
+<aside class="ate-bottom" aria-label="Édition du terrain">
+  <section class="inspector-card"><h3>Ajouter un objet</h3>
+    <button class="btn btn-primary" id="ate-design">Nouvel objet</button>
+    <div class="catalog-row"><label class="form-label">Modèle<select class="form-select" id="ate-add-type">{{catalog}}</select></label>
+    <button class="btn btn-primary" id="ate-add">Ajouter</button></div>
+
+    <div class="viz-row"><button class="btn" id="ate-trace">Tracer des murs</button><button class="btn" id="ate-place-door">Placer une porte</button></div>
+    <label class="form-label">Largeur de porte (m)<input class="form-control" id="ate-door-size" type="number" value="1" min=".3" max="8" step=".1"></label>
+    <details><summary>Bibliothèque personnelle</summary><label class="form-label">Nom du modèle<input class="form-control" id="ate-template-name" maxlength="45"></label><button class="btn" id="ate-template-save">Mémoriser la sélection</button>
+    <label class="form-label">Mes modèles<select class="form-select" id="ate-templates"></select></label><button class="btn" id="ate-template-use">Insérer le modèle</button></details>
+  </section>
+  <section class="inspector-card"><h3>Modifier un objet</h3>
+    <label class="form-label">Rechercher sur la carte<input type="search" class="form-control" id="ate-search" placeholder="Nom ou type d’objet"></label>
+    <label class="form-label">Objet sélectionné<select class="form-select" id="ate-object"></select></label>
+    <span class="text-small" id="ate-selection-status" aria-live="polite"></span>
+    <span role="status" id="ate-scope"></span>
+    <div class="viz-row"><button class="btn" id="ate-lock">Verrouiller</button><button class="btn" id="ate-multi" aria-pressed="false">Sélection multiple</button><button class="btn" id="ate-group">Grouper</button><button class="btn" id="ate-part">Modifier un membre</button><button class="btn" id="ate-ungroup">Dissocier</button></div>
+    <button class="btn" id="ate-resize">Redimensionner par les coins</button>
+    <label hidden class="form-label" id="ate-group-field">Nom du groupe<input class="form-control" id="ate-group-name" maxlength="45"></label>
+    {{rotation}}
+    {{properties}}
+  </section>
+  <section class="inspector-card"><h3>Terrain et export</h3>
+    <button id="ate-resume" class="btn" hidden>Reprendre le dernier projet</button>
+    {{land}}
+    <label><input type="checkbox" id="ate-magnet"> Aligner les bords (Alt pour suspendre)</label>
+    <details><summary>Calques</summary><label class="form-label">Catégorie<select id="ate-layer" class="form-select"><option value="tree">Arbres</option><option value="tarp">Bâches</option><option value="parking">Parking</option><option value="wall">Murs</option><option value="building">Bâtiments</option></select></label><button class="btn" id="ate-visible">Masquer</button><button class="btn" id="ate-layer-lock">Verrouiller les objets</button></details>
+    <details><summary>Fond de plan à l’échelle</summary><label class="form-label">Importer une image<input type="file" id="ate-underlay" accept="image/png,image/jpeg,image/webp"></label>
+    <label class="form-label">Distance entre deux repères (m)<input class="form-control" type="number" min=".1" step=".1" value="10" id="ate-reference"></label>
+    <button class="btn" id="ate-calibrate">Pointer les deux repères</button><button class="btn" id="ate-clear-photo">Retirer le fond</button></details>
+    <button class="btn" id="ate-print">Imprimer le plan coté / PDF</button>
+    <label class="form-label">Pas de déplacement<select class="form-select" id="ate-snap"><option value="0">Libre</option><option value=".5" selected>50 cm</option><option value="1">1 m</option><option value="5">5 m</option></select></label>
+    <button class="btn" id="ate-png">Exporter la vue PNG</button>
+  </section>
+  <span id="ate-error" role="alert" class="text-small text-destructive"></span>
+</aside>

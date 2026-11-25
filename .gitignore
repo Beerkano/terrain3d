@@ -1,0 +1,4 @@
+work/airsoft-desktop.html
+*.log
+__pycache__/
+outputs/Terrain-Airsoft-3D.exe
