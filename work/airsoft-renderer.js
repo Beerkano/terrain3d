@@ -74,12 +74,20 @@
   function planName(item) {
     return Object.hasOwn(roomPlans,item.shape) ? item.shape : 'studio';
   }
+  function freeCorners(item){
+    return item.outline.map(([x,z])=>[(x/100-.5)*item.w,(z/100-.5)*item.d]);
+  }
   function doorWalls(item){
+    if(item.type==='building'&&item.outline){
+      const corners=freeCorners(item);
+      return corners.map((a,i)=>({a,b:corners[(i+1)%corners.length]}));
+    }
     if(item.type==='building')return wallPlans[planName(item)];
     return ['wall','pallet'].includes(item.type)?[{door:false}]:[];
   }
   window.airsoftDoorWalls=doorWalls;
   function roomFootprints(item) {
+    if(item.type==='building'&&item.outline)return [freeCorners(item)];
     const rooms=item.type==='building' ? roomPlans[planName(item)] : roomPlans.studio;
     return rooms.map(([x0,z0,x1,z1]) => [
       [(x0-.5)*item.w,(z0-.5)*item.d], [(x1-.5)*item.w,(z0-.5)*item.d],
@@ -243,6 +251,16 @@
       this.face(rings[2],blend(P.foliage,P.bg,.16),null);
     }
     addBuilding(item) {
+      if(item.outline){
+        for(const [index,{a,b}] of doorWalls(item).entries()){
+          const [x,,z]=this.local(item,(a[0]+b[0])/2,0,(a[1]+b[1])/2);
+          const dx=b[0]-a[0],dz=b[1]-a[1];
+          const segment={...item,x,z,type:'wall',w:Math.hypot(dx,dz),d:Math.min(.22,item.w*.065,item.d*.065),
+            r:item.r-Math.atan2(dz,dx)*180/Math.PI,doors:item.doors?.includes(index)?[0]:[],apertures:{0:item.apertures?.[index]}};
+          this.addObject(segment);
+        }
+        return;
+      }
       const thickness = Math.min(.22, item.w*.065, item.d*.065);
       const insetX = item.w-thickness, insetZ = item.d-thickness;
       for (const [index,wall] of wallPlans[planName(item)].entries()) {
@@ -280,6 +298,7 @@
       roomFootprints(item).forEach((corners,index) => {
         const floor=blend(this.p.wood,this.p.bg,.56+(index%2)*.10);
         this.polygon(corners.map(([x,z])=>this.project(...this.local(item,x,.02,z))),rgba(floor));
+        if(item.outline)return;
         const [left,front]=corners[0], [right,back]=corners[2];
         const spacing=this.scale>6 ? .5 : 1.25;
         const plankDirection=index%2===0;
@@ -461,6 +480,15 @@
       for(const item of items) {
         const w=item.w||3,d=item.d||3,h=item.h||2.3;
         for(const corners of roomFootprints(item)) {
+          if(item.type==='building'&&item.outline){
+            const base=corners.map(([x,z])=>this.project(...this.local(item,x,0,z)));
+            this.hitAreas.push({id:item.id,polygon:base,depth:this.raw(item.x,0,item.z).depth});
+            corners.forEach(([x,z],i)=>{
+              const [ex,ez]=corners[(i+1)%corners.length];
+              this.hitAreas.push({id:item.id,polygon:[base[i],base[(i+1)%base.length],this.project(...this.local(item,ex,h,ez)),this.project(...this.local(item,x,h,z))],depth:this.raw(...this.local(item,(x+ex)/2,h/2,(z+ez)/2)).depth});
+            });
+            continue;
+          }
           const points=corners.flatMap(([x,z])=>[0,h].map(y=>this.project(...this.local(item,x,y,z))));
           const center=this.local(item,(corners[0][0]+corners[2][0])/2,h/2,(corners[0][1]+corners[2][1])/2);
           const layer=item.type==='zone'?2:item.type==='parking'?1:0;
@@ -468,6 +496,10 @@
         }
         if(item.id===this.scene.selectedId || this.scene.selectedId && this.scene.extraSelection?.has(item.id)) {
           if(item.type==='building') {
+            if(item.outline){
+              for(const {a,b} of doorWalls(item))this.worldLine(this.local(item,a[0],.04,a[1]),this.local(item,b[0],.04,b[1]),rgba(P.selection,.95),2);
+              continue;
+            }
             for(const wall of wallPlans[planName(item)].filter(wall=>!wall.interior)) {
               const wallPoint=t=>wall.axis==='x' ?
                 this.local(item,(t-.5)*w,.04,(wall.fixed-.5)*d) :

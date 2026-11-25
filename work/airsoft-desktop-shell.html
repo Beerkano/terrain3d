@@ -29,7 +29,7 @@
   <dialog id="shape-dialog" aria-labelledby="shape-title">
     <h2 id="shape-title">Nouvel objet</h2>
     <label class="form-label">Nom<input id="shape-name" class="form-control" maxlength="45" placeholder="Mon objet"></label>
-    <label class="form-label">Forme<select class="form-select" id="shape-type"><option value="box">Rectangle</option><option value="round">Cercle</option><option value="custom">Forme libre</option><option value="building">Bâtiment</option><option value="container">Conteneur</option><option value="wall">Mur</option><option value="tarp">Abri en bâche</option></select></label>
+    <label class="form-label">Forme<select class="form-select" id="shape-type"><option value="box">Rectangle</option><option value="round">Cercle</option><option value="freebuilding">Bâtiment à contour libre</option><option value="custom">Volume plein à contour libre</option><option value="building">Bâtiment</option><option value="container">Conteneur</option><option value="wall">Mur</option><option value="tarp">Abri en bâche</option></select></label>
     <div id="shape-drawing" hidden><p>Clique sur la grille pour placer les sommets dans l’ordre du contour.</p>
     <svg id="shape-pad" viewBox="0 0 100 100" aria-label="Dessin du contour" style="width:180px;height:180px;background:#edf3eb;cursor:crosshair"><defs><pattern id="shape-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="#b4c7b5" stroke-width=".5"/></pattern></defs><rect width="100" height="100" fill="url(#shape-grid)"/><polygon id="shape-polygon" fill="#b2ceb4" stroke="#295942" stroke-width="1"/><g id="shape-vertices"></g></svg>
     <button type="button" class="btn" id="shape-back">Retirer le dernier point</button></div>

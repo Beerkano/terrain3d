@@ -62,7 +62,8 @@ function attachDoor(p){
       const across=wall.axis!=='z',building=item.type==='building',inset=building?Math.min(.22,item.w*.065,item.d*.065):0;
       const w=item.w-inset,d=item.d-inset;
       const point=t=>renderer.local(item,(across?t:(wall.fixed??.5)-.5)*w,0,(across?(wall.fixed??.5)-.5:t)*d);
-      const [ax,,az]=point((wall.start??0)-.5),[bx,,bz]=point((wall.end??1)-.5);
+      const [ax,,az]=wall.a?renderer.local(item,wall.a[0],0,wall.a[1]):point((wall.start??0)-.5);
+      const [bx,,bz]=wall.b?renderer.local(item,wall.b[0],0,wall.b[1]):point((wall.end??1)-.5);
       const dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz);
       const at=Math.max(0,Math.min(1,((p.x-ax)*dx+(p.z-az)*dz)/(len*len)));
       const error=Math.hypot(ax+at*dx-p.x,az+at*dz-p.z);

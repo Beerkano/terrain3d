@@ -76,18 +76,23 @@
     check(plan().items.length===count,'historique au clavier');
   }
   act('design');click('shape-cancel');check(!id('shape-dialog').open,'annulation objet');
-  for(const type of ['box','round','custom']){
+  for(const type of ['box','round','custom','freebuilding']){
     act('design');
     id('shape-type').value=type;id('shape-type').dispatchEvent(new Event('change'));
     id('shape-name').value='Création test';
-    if(type==='custom'){
+    if(type==='custom'||type==='freebuilding'){
       const pad=id('shape-pad'),rect=pad.getBoundingClientRect();
       for(const [x,y] of [[.1,.1],[.9,.1],[.9,.9],[.1,.9]])
         pad.dispatchEvent(new MouseEvent('click',{clientX:rect.left+x*rect.width,clientY:rect.top+y*rect.height}));
       click('shape-back');
     }
-    click('shape-create');check(!id('shape-dialog').open&&sel().type===type&&sel().name==='Création test','création '+type);
+    click('shape-create');check(!id('shape-dialog').open&&sel().type===(type==='freebuilding'?'building':type)&&sel().name==='Création test','création '+type);
     if(type==='custom')check(sel().outline.length===3,'dessin libre');
+    if(type==='freebuilding'){
+      check(sel().outline.length===3&&id('ate-door-wall').options.length===3,'trois murs libres');
+      change('door-wall','2');act('door');check(sel().doors.includes(2),'porte sur le mur diagonal');
+      act('rotate');check(sel().r===90,'rotation du bâtiment');act('undo');act('undo');
+    }
     act('undo');
   }
   for(const type of ['building','wall','pallet']){

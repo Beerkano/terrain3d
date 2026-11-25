@@ -106,7 +106,7 @@
       if (!['x','z','w','d','h','r'].every(key=>typeof rawItem[key]==='number' && Number.isFinite(rawItem[key])) || rawItem.w<.3 || rawItem.w>500 || rawItem.d<.3 || rawItem.d>500 || rawItem.h<.3 || rawItem.h>50) throw new Error('Dimensions ou positions invalides.');
       const item={id:rawItem.id,type:rawItem.type,name:String(rawItem.name||labels[rawItem.type]).slice(0,45),x:rawItem.x,z:rawItem.z,w:rawItem.w,d:rawItem.d,h:rawItem.h,r:normAngle(rawItem.r)};
       if(item.type==='building' && shapes.has(rawItem.shape))item.shape=rawItem.shape;
-      if(item.type==='custom'&&rawItem.outline)item.outline=window.desktopDesign.outline(rawItem.outline);
+      if(['custom','building'].includes(item.type)&&rawItem.outline)item.outline=window.desktopDesign.outline(rawItem.outline);
       if(rawItem.doors!==undefined){
         const walls=window.airsoftDoorWalls(item);
         if(!Array.isArray(rawItem.doors)||rawItem.doors.length>walls.length||!rawItem.doors.every(i=>Number.isInteger(i)&&walls[i]&&!walls[i].door))throw Error('Porte incompatible avec le mur.');
@@ -225,8 +225,9 @@
       });
       menu.value=[...menu.options].some(o=>o.value===previous)?previous:(menu.options[0]?.value??'');
       el('door').textContent=item?.doors?.includes(Number(menu.value))?'Retirer la porte':'Ajouter une porte';
-      el('outline-wrap').hidden=item?.type!=='custom';
-      if(item?.type==='custom')el('outline').value=(item.outline||window.desktopDesign.defaultOutline).map(p=>p.join(',')).join(' ; ');
+      const editableOutline=item?.type==='custom'||(item?.type==='building'&&item.outline);
+      el('outline-wrap').hidden=!editableOutline;
+      if(editableOutline)el('outline').value=(item.outline||window.desktopDesign.defaultOutline).map(p=>p.join(',')).join(' ; ');
       for(const key of ['width','depth','ground'])el('land-'+key).value=land[key];
       el('x').max=land.width;el('z').max=land.depth;el('w').max=land.width;el('d').max=land.depth;el('h').max=50;
       if(item)el('color').value=item.color||({tree:'#789859',container:'#367287',tarp:'#789859',parking:'#c9c7bc',zone:'#e7d8b5'})[item.type]||'#9f6940';
@@ -234,7 +235,7 @@
     }
     el('turn-name').textContent=item?.name||'';
     el('hint').textContent=item?'Fais glisser la poignée ronde pour tourner la sélection.':'Clique sur un bâtiment pour le déplacer ou le tourner.';
-    el('shape-wrap').hidden=item?.type!=='building';
+    el('shape-wrap').hidden=item?.type!=='building'||!!item.outline;
     if(item?.type==='building')el('shape').value=item.shape||'studio';
     if(!desktop)for(const key of landmarks){
       const button=el('focus-'+key);
@@ -301,7 +302,7 @@
     const item=selected();if(!item||members().some(i=>i.locked)||multi)return;
     if(key==='r' && el(key).value!=='' && Number.isFinite(Number(el(key).value))){commitMutation(()=>transform(item,item.x,item.z,Number(el(key).value)));return;}
     if(key==='name') {commitMutation(()=>{item.name=el('name').value.trim()||labels[item.type];});return;}
-    if(key==='type') {commitMutation(()=>{item.type=el('type').value;delete item.doors;delete item.shape;delete item.landmark;clampItem(item);});return;}
+    if(key==='type') {commitMutation(()=>{item.type=el('type').value;delete item.doors;delete item.apertures;delete item.shape;delete item.landmark;if(!['custom','building'].includes(item.type))delete item.outline;clampItem(item);});return;}
     const value=Number(el(key).value);
     if(!Number.isFinite(value)||el(key).value==='') {el('error').textContent='Saisis une valeur numérique.';syncControls();return;}
     const min={x:0,z:0,w:.3,d:.3,h:.3,r:0}[key], max={x:land.width,z:land.depth,w:land.width,d:land.depth,h:50,r:359}[key];
@@ -434,20 +435,20 @@
     let points=[];
     function previewShape(){
       const type=shape('type').value;
-      shape('drawing').hidden=type!=='custom';shape('depth-label').hidden=type==='round';
+      shape('drawing').hidden=!['freebuilding','custom'].includes(type);shape('depth-label').hidden=type==='round';
       shape('width-label').textContent=type==='round'?'Diamètre (m)':'Largeur (m)';
       shape('polygon').setAttribute('points',points.map(p=>p.join(',')).join(' '));
       shape('vertices').replaceChildren(...points.map(([x,y])=>{
         const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
         dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',1.6);dot.setAttribute('fill','#244e38');return dot;
       }));
-      shape('note').textContent=type==='custom'?points.length+' sommets · 3 minimum':'';
+      shape('note').textContent=type==='freebuilding'?points.length+' sommets · chaque côté formera un mur, le dernier rejoint le premier.':type==='custom'?points.length+' sommets · 3 minimum':'';
     }
     el('design').addEventListener('click',()=>{
-      points=[];shape('name').value='';shape('type').value='box';previewShape();shape('dialog').showModal();
+      points=[];shape('name').value='';shape('type').value='freebuilding';[shape('w').value,shape('d').value,shape('h').value]=[10,8,2.5];previewShape();shape('dialog').showModal();
     });
     shape('type').addEventListener('change',()=>{
-      const [w,d,h]=defaults[shape('type').value];shape('w').value=w;shape('d').value=d;shape('h').value=h;previewShape();
+      const [w,d,h]=(shape('type').value==='freebuilding'?[10,8,2.5]:defaults[shape('type').value]);shape('w').value=w;shape('d').value=d;shape('h').value=h;previewShape();
     });
     shape('pad').addEventListener('click',e=>{
       if(points.length>=40)return;
@@ -461,8 +462,9 @@
       try{
         const type=shape('type').value,w=Number(shape('w').value),d=type==='round'?w:Number(shape('d').value),h=Number(shape('h').value);
         if(![w,d,h].every(n=>Number.isFinite(n)&&n>=.3)||w>land.width||d>land.depth||h>50)throw Error('Vérifie les dimensions du terrain et la hauteur (0,3 à 50 m).');
-        const item={id:newId(),type,w,d,h,r:0,color:shape('color').value,name:shape('name').value.trim()||labels[type]};
-        if(type==='custom'){
+        const objectType=type==='freebuilding'?'building':type;
+        const item={id:newId(),type:objectType,w,d,h,r:0,color:shape('color').value,name:shape('name').value.trim()||labels[objectType]};
+        if(['custom','freebuilding'].includes(type)){
           const outline=window.desktopDesign.outline(points);
           const xs=outline.map(p=>p[0]),zs=outline.map(p=>p[1]);
           const left=Math.min(...xs),top=Math.min(...zs);
@@ -549,11 +551,11 @@
       }finally{renderer.scene.selectedId=selection;renderer.schedule();}
     });
     el('outline-apply').addEventListener('click',()=>{
-      const item=selected();if(item?.type!=='custom')return;
+      const item=selected();if(item?.type!=='custom'&&!(item?.type==='building'&&item.outline))return;
       try{
         const points=el('outline').value.split(';').map(pair=>pair.trim().split(',').map(value=>value.trim()===''?NaN:Number(value)));
         const validated=window.desktopDesign.outline(points);
-        commitMutation(()=>{item.outline=validated;});
+        commitMutation(()=>{if(item.doors&&validated.length!==item.outline?.length){delete item.doors;delete item.apertures;}item.outline=validated;});
       }catch(error){el('error').textContent=error.message;}
     });
     el('color').addEventListener('change',()=>{const item=selected();if(item)commitMutation(()=>{item.color=el('color').value;});});
