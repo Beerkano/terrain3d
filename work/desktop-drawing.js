@@ -2,11 +2,12 @@
 const tools=renderer.callbacks, canvas=el('canvas');
 const libraryKey='terrain-airsoft.templates.v1';
 let drawing=null, anchor=null, hover=null, sizing=null, photoImage=null, photoSource=null;
-const tips={trace:'Clique pour commencer le mur, puis sur chaque angle. Échap pour terminer.',
+const tips={visit:'Clique sur le terrain pour y commencer la visite. Échap pour annuler.',trace:'Clique pour commencer le mur, puis sur chaque angle. Échap pour terminer.',
   'place-door':'Clique sur le mur à l’endroit voulu. Échap pour terminer.',
   resize:'Fais glisser un coin en vue du dessus. Échap pour terminer.',
   calibrate:'Clique sur les deux repères de distance connue dans la photo.'};
 const tip=t=>{el('hint').textContent=t;};
+/* WALKTHROUGH */
 function cancelDrawing(){
   drawing=null;anchor=null;hover=null;
   if(sizing){renderer.callbacks.onCommit();sizing=null;}
@@ -14,6 +15,7 @@ function cancelDrawing(){
 tools.cancelDrawing=cancelDrawing;
 function startDrawing(key){
   if(drawing===key){setMode('explore');return;}
+  if(key==='visit')visitReturnView={...view};
   setMode('explore');showView({...view,pitch:90,yaw:0});drawing=key;refresh();
 }
 for(const key of Object.keys(tips))el(key).addEventListener('click',()=>startDrawing(key));
@@ -80,6 +82,7 @@ tools.drawingDown=(point,e)=>{
   if(!drawing)return false;
   const p=renderer.groundAt(point.x,point.y);
   if(p.x<0||p.z<0||p.x>land.width||p.z>land.depth)return true;
+  if(drawing==='visit'){launchVisit(p);return true;}
   if(drawing==='place-door'){attachDoor(p);return true;}
   if(drawing==='resize'){
     const item=selected();

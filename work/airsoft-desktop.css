@@ -261,3 +261,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
  #print-plan td{padding:1.5mm;border-bottom:1px solid #ccd2cb}
  #print-plan tr{break-inside:avoid}
 }
+#visit-dialog {width:min(1080px,96vw);padding:0;border:1px solid #b0c0ae;border-radius:12px;background:#183e34;color:#f3f9f1}
+#visit-dialog::backdrop {background:#11281de0}
+#visit-dialog header {display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+#visit-dialog h2 {margin:0;font-size:1.2rem}
+#visit-position,#visit-dialog footer {font-size:.84rem}
+#visit-dialog footer {padding:10px 16px;line-height:1.5}
+#visit-canvas {display:block;width:100%;height:min(67vh,650px);touch-action:none;cursor:grab}
+#visit-close {color:#193c30}

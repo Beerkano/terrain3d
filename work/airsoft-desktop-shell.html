@@ -40,6 +40,11 @@
     <p id="shape-note" role="status"></p>
     <button class="btn" id="shape-cancel">Annuler</button> <button class="btn btn-primary" id="shape-create">Placer sur la carte</button>
   </dialog>
+  <dialog id="visit-dialog" aria-labelledby="visit-title">
+    <header><div><h2 id="visit-title">Visite au sol</h2><span id="visit-position"></span></div><button class="btn" id="visit-close">Retour au plan</button></header>
+    <canvas id="visit-canvas" tabindex="0" aria-label="Vue à hauteur des yeux"></canvas>
+    <footer>Avancer et reculer avec ↑ ↓ ou Z S · Tourner avec ← → · Glisser la vue pour regarder autour de soi · Échap pour sortir</footer>
+  </dialog>
   <main class="desktop-grid">
     <div id="ate-file-tools" aria-label="Fichiers de plan">
       <div class="file-actions">

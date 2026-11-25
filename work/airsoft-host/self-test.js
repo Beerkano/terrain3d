@@ -151,6 +151,16 @@
   id('ate-magnet').checked=true;act('move');act('top');await pause();
   pointer('pointerdown',52,40);pointer('pointermove',44.5,40);pointer('pointerup',44.5,40);
   check(Math.abs(sel().x-44)<.1,'alignement magnétique des bords');
+  const beforeVisit=JSON.stringify(plan()),previousView=api.getView();
+  act('visit');await pause();pointer('pointerdown',40,30);await until(()=>id('visit-dialog').open);
+  const groundCanvas=id('visit-canvas'),position=id('visit-position').textContent;
+  const picture=groundCanvas.toDataURL();
+  groundCanvas.dispatchEvent(new KeyboardEvent('keydown',{key:'z',bubbles:true}));
+  await until(()=>position!==id('visit-position').textContent);
+  groundCanvas.dispatchEvent(new KeyboardEvent('keyup',{key:'z',bubbles:true}));
+  check(picture!==groundCanvas.toDataURL(),'perspective en mouvement');
+  click('visit-close');await until(()=>!id('visit-dialog').open);await pause();
+  check(JSON.stringify(plan())===beforeVisit&&api.getView().pitch===previousView.pitch,'retour au plan intact');
   check(errors.length===0,errors.join(', '));
   const missing=[...document.querySelectorAll('button')].filter(b=>!tested.has(b.id));
   check(!missing.length,missing.map(b=>b.id).join(', '));

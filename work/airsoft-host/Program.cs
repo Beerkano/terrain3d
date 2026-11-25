@@ -13,7 +13,7 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyTitle("Terrain Airsoft 3D")]
 [assembly: AssemblyProduct("Terrain Airsoft 3D")]
 [assembly: AssemblyDescription("Éditeur de terrain d’airsoft hors ligne")]
-[assembly: AssemblyVersion("1.10.0.0")]
+[assembly: AssemblyVersion("1.11.0.0")]
 [assembly: AssemblyCompany("beerkano")]
 [assembly: AssemblyCopyright("© 2026 beerkano — Code spécifique à Terrain Airsoft 3D")]
 
@@ -224,7 +224,7 @@ internal sealed class EditorWindow : Form
                         result = await core.ExecuteScriptAsync("window.testOutcome || null");
                     } while (result == "null");
                     Console.Error.WriteLine(result);
-                    TestResult = result == "\"ok 44\"" ? 0 : 7;
+                    TestResult = result == "\"ok 46\"" ? 0 : 7;
                 }
                 catch (Exception failure) { Console.Error.WriteLine(failure); TestResult = 8; }
                 finally { if (!IsDisposed) Close(); }

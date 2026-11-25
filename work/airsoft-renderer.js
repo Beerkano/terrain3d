@@ -294,6 +294,7 @@
         }
       }
     }
+    footprints(item) {return roomFootprints(item);}
     drawRoomFloors(item) {
       roomFootprints(item).forEach((corners,index) => {
         const floor=blend(this.p.wood,this.p.bg,.56+(index%2)*.10);
