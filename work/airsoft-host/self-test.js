@@ -20,6 +20,9 @@
   const errors=[];
   window.addEventListener('error',e=>errors.push(e.message));
   check(plan().items.length===0,'démarrage vierge même après une session');
+  act('file-sample');check(plan().title==='La cour couverte'&&plan().items.length===62,'accès direct à la carte');
+  act('undo');check(plan().items.length===0,'annuler ouverture');
+  act('file-sample');
   act('top');check(JSON.parse(localStorage.getItem('terrain-airsoft.desktop.plan.v1')).modelContent.plan.items.length===62,'session préservée');
   act('resume');check(plan().items.length===62,'reprise volontaire');
   const sampleFile=new DataTransfer();sampleFile.items.add(new File([JSON.stringify(window.samplePlan)],'La cour couverte.airsoft.json'));

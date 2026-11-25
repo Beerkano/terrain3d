@@ -72,6 +72,18 @@
         input.value = '';
       }
     }
+    byId('sample').addEventListener('click',()=>{
+      loadPlan(/* EMBEDDED_PLAN */ null);
+      status('La cour couverte · carte de référence ouverte');
+    });
+    window.chrome?.webview?.addEventListener('message',event=>{
+      try{
+        const plan=JSON.parse(event.data);
+        loadPlan(plan);
+        status('Plan ouvert · '+(plan.title||'Mon terrain'));
+        window.chrome.webview.postMessage('plan-opened');
+      }catch(error){status('Ouverture impossible · '+error.message);}
+    });
     byId('save').addEventListener('click', save);
     byId('open').addEventListener('click', ()=>input.click());
     input.addEventListener('change', open);

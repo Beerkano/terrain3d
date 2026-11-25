@@ -2,7 +2,7 @@
 
 Éditeur de terrain hors ligne pour Windows x64, par beerkano.
 
-Lancer `outputs/Terrain-Airsoft-3D-1.11.exe`. La carte démarre vide. Le menu **Ouvrir** permet de charger `outputs/La cour couverte.airsoft.json`.
+Lancer `outputs/Terrain-Airsoft-3D-1.12.exe`. La carte démarre vide. Le bouton **Ouvrir La cour couverte** charge la carte intégrée. Le menu **Ouvrir** permet aussi de charger `outputs/La cour couverte.airsoft.json`.
 
 **Visiter** ouvre une vue au sol à partir du point choisi sur la carte. Les flèches permettent de marcher et de tourner, et un glissement de souris oriente le regard. Échap ramène au plan.
 

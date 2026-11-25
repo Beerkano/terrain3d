@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import json
 
 work = Path(__file__).resolve().parent
 read = lambda name: (work / name).read_text(encoding='utf-8')
@@ -48,7 +49,10 @@ fragment=fragment.replace(square,'',1).replace('<button class="btn" id="ate-png"
 for key,shortcut in [('undo','Ctrl+Z'),('redo','Ctrl+Maj+Z')]:
     fragment=fragment.replace(f'id="ate-{key}"',f'id="ate-{key}" title="{shortcut}"',1)
 for token, value in [('APP_FRAGMENT',fragment),('APP_CSS',read('airsoft-desktop.css')),('APP_STORAGE',read('airsoft-desktop-storage.js'))]:
-    mark = f'<!-- {token} -->'
+    if token=='APP_STORAGE':
+        sample=json.loads((work.parent/'outputs'/'La cour couverte.airsoft.json').read_text(encoding='utf-8-sig'))
+        value=value.replace('/* EMBEDDED_PLAN */ null',json.dumps(sample,ensure_ascii=True).replace('<',r'\u003c'))
+    mark = f'<!-- {token} -->' 
     assert shell.count(mark) == 1, mark
     shell = shell.replace(mark,value)
 (work / 'airsoft-desktop.html').write_text(shell, encoding='utf-8')

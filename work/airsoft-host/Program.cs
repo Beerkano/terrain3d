@@ -13,7 +13,7 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyTitle("Terrain Airsoft 3D")]
 [assembly: AssemblyProduct("Terrain Airsoft 3D")]
 [assembly: AssemblyDescription("Éditeur de terrain d’airsoft hors ligne")]
-[assembly: AssemblyVersion("1.11.0.0")]
+[assembly: AssemblyVersion("1.12.0.0")]
 [assembly: AssemblyCompany("beerkano")]
 [assembly: AssemblyCopyright("© 2026 beerkano — Code spécifique à Terrain Airsoft 3D")]
 
@@ -60,7 +60,15 @@ internal static class Program
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             if (selfTest) return RunSelfTest(page, Path.GetDirectoryName(loader), Path.Combine(root, "p-" + Guid.NewGuid().ToString("N").Substring(0,8)));
-            try { RunWindow(page, Path.GetDirectoryName(loader), Path.Combine(root, "profil")); }
+            string requestedPlan = null;
+            if (args.Length == 1)
+            {
+                var file = new FileInfo(args[0]);
+                if (!file.Exists || !file.Extension.Equals(".json",StringComparison.OrdinalIgnoreCase) || file.Length > 2 * 1024 * 1024)
+                    throw new InvalidDataException("Choisis un fichier de plan JSON de moins de 2 Mo.");
+                requestedPlan = File.ReadAllText(file.FullName);
+            }
+            try { RunWindow(page, Path.GetDirectoryName(loader), Path.Combine(root, "profil"), requestedPlan); }
             catch (Exception) { OpenBrowser(page); }
             return 0;
         }
@@ -128,10 +136,10 @@ internal static class Program
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void RunWindow(string page, string loaderFolder, string profile)
+    private static void RunWindow(string page, string loaderFolder, string profile, string requestedPlan)
     {
         CoreWebView2Environment.SetLoaderDllFolderPath(loaderFolder);
-        using (var window = new EditorWindow(page, profile)) Application.Run(window);
+        using (var window = new EditorWindow(page, profile, false, requestedPlan)) Application.Run(window);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -159,14 +167,16 @@ internal sealed class EditorWindow : Form
     private readonly string profile;
     private readonly WebView2 editor = new WebView2();
     private readonly bool testing;
+    private string pendingPlan;
     private readonly Timer timeout = new Timer();
     internal int TestResult { get; private set; }
 
-    internal EditorWindow(string pagePath, string profilePath, bool selfTest = false)
+    internal EditorWindow(string pagePath, string profilePath, bool selfTest = false, string requestedPlan = null)
     {
         page = pagePath;
         profile = profilePath;
         testing = selfTest;
+        pendingPlan = requestedPlan;
         Text = Program.Title;
         Size = new Size(1280, 900);
         MinimumSize = new Size(640, 480);
@@ -206,6 +216,15 @@ internal sealed class EditorWindow : Form
             core.Settings.AreHostObjectsAllowed = false;
             core.NewWindowRequested += delegate(object source, CoreWebView2NewWindowRequestedEventArgs e) { e.Handled = true; };
             core.DownloadStarting += SavePlan;
+            core.NavigationCompleted += delegate(object source, CoreWebView2NavigationCompletedEventArgs completed) {
+                if (pendingPlan != null && completed.IsSuccess && core.Source == address) {
+                    core.PostWebMessageAsString(pendingPlan);
+                    pendingPlan = null;
+                }
+            };
+            core.WebMessageReceived += delegate(object source, CoreWebView2WebMessageReceivedEventArgs received) {
+                if (received.Source == address && received.WebMessageAsJson == "\"plan-opened\"") Text = Program.Title + " — Plan ouvert";
+            };
             if (testing) {
                 using (var reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("Airsoft.SamplePlan")))
                     await core.AddScriptToExecuteOnDocumentCreatedAsync("window.samplePlan=" + reader.ReadToEnd() + ";localStorage.setItem('terrain-airsoft.desktop.plan.v1',JSON.stringify({modelContent:{plan:window.samplePlan}}));");
@@ -224,7 +243,7 @@ internal sealed class EditorWindow : Form
                         result = await core.ExecuteScriptAsync("window.testOutcome || null");
                     } while (result == "null");
                     Console.Error.WriteLine(result);
-                    TestResult = result == "\"ok 46\"" ? 0 : 7;
+                    TestResult = result == "\"ok 47\"" ? 0 : 7;
                 }
                 catch (Exception failure) { Console.Error.WriteLine(failure); TestResult = 8; }
                 finally { if (!IsDisposed) Close(); }
